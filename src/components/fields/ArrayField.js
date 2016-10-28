@@ -1,6 +1,7 @@
-import React, { Component, PropTypes } from "react";
+import React, {Component, PropTypes} from "react";
 
 import {
+  getAlternativeWidget,
   getDefaultFormState,
   isMultiSelect,
   isFilesArray,
@@ -13,25 +14,25 @@ import {
   getDefaultRegistry,
   setState
 } from "../../utils";
-import SelectWidget from "./../widgets/SelectWidget";
 import FileWidget from "./../widgets/FileWidget";
-import CheckboxesWidget from "./../widgets/CheckboxesWidget";
 
 
 function ArrayFieldTitle({TitleField, idSchema, title, required}) {
   if (!title) {
-    return null;
+    // See #312: Ensure compatibility with old versions of React.
+    return <div/>;
   }
   const id = `${idSchema.$id}__title`;
-  return <TitleField id={id} title={title} required={required} />;
+  return <TitleField id={id} title={title} required={required}/>;
 }
 
 function ArrayFieldDescription({DescriptionField, idSchema, description}) {
   if (!description) {
-    return null;
+    // See #312: Ensure compatibility with old versions of React.
+    return <div/>;
   }
   const id = `${idSchema.$id}__description`;
-  return <DescriptionField id={id} description={description} />;
+  return <DescriptionField id={id} description={description}/>;
 }
 
 class ArrayField extends Component {
@@ -42,6 +43,7 @@ class ArrayField extends Component {
     required: false,
     disabled: false,
     readonly: false,
+    autofocus: false,
   };
 
   constructor(props) {
@@ -161,9 +163,10 @@ class ArrayField extends Component {
       name,
       required,
       disabled,
-      readonly
+      readonly,
+      autofocus,
     } = this.props;
-    const title = schema.title || name;
+    const title = (schema.title === undefined) ? name : schema.title;
     const {items} = this.state;
     const {definitions, fields} = this.props.registry;
     const {TitleField, DescriptionField} = fields;
@@ -176,12 +179,12 @@ class ArrayField extends Component {
           TitleField={TitleField}
           idSchema={idSchema}
           title={title}
-          required={required} />
+          required={required}/>
         {schema.description ?
           <ArrayFieldDescription
             DescriptionField={DescriptionField}
             idSchema={idSchema}
-            description={schema.description} /> : null}
+            description={schema.description}/> : null}
         <div className="row array-item-list">{
           items.map((item, index) => {
             const itemErrorSchema = errorSchema ? errorSchema[index] : undefined;
@@ -195,40 +198,43 @@ class ArrayField extends Component {
               itemIdSchema,
               itemErrorSchema,
               itemData: items[index],
-              itemUiSchema: uiSchema.items
+              itemUiSchema: uiSchema.items,
+              autofocus: autofocus && index === 0
             });
           })
         }</div>
         <AddButton
-          onClick={this.onAddClick} disabled={disabled || readonly} />
+          onClick={this.onAddClick} disabled={disabled || readonly}/>
       </fieldset>
     );
   }
 
   renderMultiSelect() {
-    const {schema, idSchema, uiSchema, disabled, readonly} = this.props;
+    const {schema, idSchema, uiSchema, disabled, readonly, autofocus} = this.props;
     const {items} = this.state;
-    const {definitions} = this.props.registry;
+    const {widgets, definitions} = this.props.registry;
     const itemsSchema = retrieveSchema(schema.items, definitions);
 
-    const multipleCheckboxes = uiSchema["ui:widget"] === "checkboxes";
-    const Widget = (multipleCheckboxes) ? CheckboxesWidget : SelectWidget;
+    const Widget = getAlternativeWidget(schema, uiSchema["ui:widget"] || "select", widgets);
     return (
       <Widget
         id={idSchema && idSchema.$id}
         multiple
         onChange={this.onSelectChange}
-        options={{enumOptions: optionsList(itemsSchema)}}
+        options={{
+          ...Widget.defaultProps.options,
+          enumOptions: optionsList(itemsSchema),
+        }}
         schema={schema}
         value={items}
         disabled={disabled}
         readonly={readonly}
-      />
+        autofocus={autofocus}/>
     );
   }
 
   renderFiles() {
-    const {schema, idSchema, name, disabled, readonly} = this.props;
+    const {schema, idSchema, name, disabled, readonly, autofocus} = this.props;
     const title = schema.title || name;
     const {items} = this.state;
     return (
@@ -241,7 +247,7 @@ class ArrayField extends Component {
         value={items}
         disabled={disabled}
         readonly={readonly}
-      />
+        autofocus={autofocus}/>
     );
   }
 
@@ -254,7 +260,8 @@ class ArrayField extends Component {
       name,
       required,
       disabled,
-      readonly
+      readonly,
+      autofocus,
     } = this.props;
     const title = schema.title || name;
     let {items} = this.state;
@@ -277,7 +284,7 @@ class ArrayField extends Component {
           TitleField={TitleField}
           idSchema={idSchema}
           title={title}
-          required={required} />
+          required={required}/>
         {schema.description ?
           <div className="field-description">{schema.description}</div> : null}
         <div className="row array-item-list">{
@@ -302,14 +309,15 @@ class ArrayField extends Component {
               itemData: item,
               itemUiSchema,
               itemIdSchema,
-              itemErrorSchema
+              itemErrorSchema,
+              autofocus: autofocus && index === 0
             });
           })
         }</div>
         {
           additionalSchema ? <AddButton
                                onClick={this.onAddClick}
-                               disabled={disabled || readonly} /> : null
+                               disabled={disabled || readonly}/> : null
         }
       </fieldset>
     );
@@ -324,11 +332,19 @@ class ArrayField extends Component {
     itemData,
     itemUiSchema,
     itemIdSchema,
-    itemErrorSchema
+    itemErrorSchema,
+    autofocus
   }) {
     const {SchemaField} = this.props.registry.fields;
-    const {disabled, readonly} = this.props;
-    const hasToolbar = removable || canMoveUp || canMoveDown;
+    const {disabled, readonly, uiSchema} = this.props;
+
+    const {orderable} = {orderable: true, ...uiSchema["ui:options"]};
+
+    const _canMoveUp = orderable && canMoveUp;
+    const _canMoveDown = orderable && canMoveDown;
+
+    const hasToolbar = removable || _canMoveUp || _canMoveDown;
+
     const btnStyle = {flex: 1, paddingLeft: 6, paddingRight: 6, fontWeight: "bold"};
 
     return (
@@ -344,24 +360,25 @@ class ArrayField extends Component {
             onChange={this.onChangeForIndex(index)}
             registry={this.props.registry}
             disabled={this.props.disabled}
-            readonly={this.props.readonly} />
+            readonly={this.props.readonly}
+            autofocus={autofocus}/>
         </div>
         {
           hasToolbar ?
             <div className="col-xs-2 array-item-toolbox text-right">
               <div className="btn-group" style={{display: "flex"}}>
-                {canMoveUp || canMoveDown ?
+                {_canMoveUp || _canMoveDown ?
                   <button type="button" className="btn btn-default array-item-move-up"
                           style={btnStyle}
                           tabIndex="-1"
-                          disabled={disabled || readonly || !canMoveUp}
+                          disabled={disabled || readonly || !_canMoveUp}
                           onClick={this.onReorderClick(index, index - 1)}>⬆</button>
                   : null}
-                {canMoveUp || canMoveDown ?
+                {_canMoveUp || _canMoveDown ?
                   <button type="button" className="btn btn-default array-item-move-down"
                           style={btnStyle}
                           tabIndex="-1"
-                          disabled={disabled || readonly || !canMoveDown}
+                          disabled={disabled || readonly || !_canMoveDown}
                           onClick={this.onReorderClick(index, index + 1)}>⬇</button>
                   : null}
                 {removable ?
@@ -395,7 +412,11 @@ function AddButton({onClick, disabled}) {
 if (process.env.NODE_ENV !== "production") {
   ArrayField.propTypes = {
     schema: PropTypes.object.isRequired,
-    uiSchema: PropTypes.object,
+    uiSchema: PropTypes.shape({
+      "ui:options": PropTypes.shape({
+        orderable: PropTypes.bool
+      })
+    }),
     idSchema: PropTypes.object,
     errorSchema: PropTypes.object,
     onChange: PropTypes.func.isRequired,
@@ -403,6 +424,7 @@ if (process.env.NODE_ENV !== "production") {
     required: PropTypes.bool,
     disabled: PropTypes.bool,
     readonly: PropTypes.bool,
+    autofocus: PropTypes.bool,
     registry: PropTypes.shape({
       widgets: PropTypes.objectOf(PropTypes.oneOfType([
         PropTypes.func,
@@ -410,7 +432,8 @@ if (process.env.NODE_ENV !== "production") {
       ])).isRequired,
       fields: PropTypes.objectOf(PropTypes.func).isRequired,
       definitions: PropTypes.object.isRequired,
-    })
+      formContext: PropTypes.object.isRequired
+    }),
   };
 }
 

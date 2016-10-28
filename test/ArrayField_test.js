@@ -1,9 +1,9 @@
 import React from "react";
 
-import { expect } from "chai";
-import { Simulate } from "react-addons-test-utils";
+import {expect} from "chai";
+import {Simulate} from "react-addons-test-utils";
 
-import { createFormComponent, createSandbox } from "./test_utils";
+import {createFormComponent, createSandbox} from "./test_utils";
 
 
 describe("ArrayField", () => {
@@ -155,6 +155,15 @@ describe("ArrayField", () => {
       expect(moveDownBtns[0].disabled).eql(false);
       expect(moveUpBtns[1].disabled).eql(false);
       expect(moveDownBtns[1].disabled).eql(true);
+    });
+
+    it("should not show move up/down buttons is orderable is false", () => {
+      const {node} = createFormComponent({schema, formData: ["foo", "bar"], uiSchema: {"ui:options": {orderable: false}}});
+      const moveUpBtns = node.querySelector(".array-item-move-up");
+      const moveDownBtns = node.querySelector(".array-item-move-down");
+
+      expect(moveUpBtns).to.be.null;
+      expect(moveDownBtns).to.be.null;
     });
 
     it("should remove a field from the list", () => {
@@ -355,6 +364,23 @@ describe("ArrayField", () => {
 
         expect(node.querySelector(".checkboxes").id).eql("root");
       });
+
+      it("should support inline checkboxes", () => {
+        const {node} = createFormComponent({
+          schema,
+          uiSchema: {
+            "ui:widget": {
+              component: "checkboxes",
+              options: {
+                inline: true
+              }
+            }
+          }
+        });
+
+        expect(node.querySelectorAll(".checkbox-inline"))
+          .to.have.length.of(3);
+      });
     });
   });
 
@@ -542,8 +568,8 @@ describe("ArrayField", () => {
       const numInput =
           node.querySelector("fieldset .field-number input[type=text]");
 
-      Simulate.change(strInput, {target: { value: "bar" }});
-      Simulate.change(numInput, {target: { value: "101" }});
+      Simulate.change(strInput, {target: {value: "bar"}});
+      Simulate.change(numInput, {target: {value: "101"}});
 
       expect(comp.state.formData).eql(["bar", 101]);
     });
@@ -623,6 +649,51 @@ describe("ArrayField", () => {
       });
 
       expect(comp.state.formData).eql([1, 2]);
+    });
+  });
+
+  describe("Title", () => {
+    const TitleField = props => <div id={`title-${props.title}`}/>;
+
+    const fields = {TitleField};
+
+    it("should pass field name to TitleField if there is no title", () => {
+      const schema = {
+        "type": "object",
+        "properties": {
+          "array": {
+            "type": "array",
+            "items": {
+            }
+          }
+        }
+      };
+
+      const {node} = createFormComponent({schema, fields});
+      expect(node.querySelector("#title-array")).to.not.be.null;
+    });
+
+    it("should pass schema title to TitleField", () => {
+      const schema = {
+        "type": "array",
+        "title": "test",
+        "items": {
+        }
+      };
+
+      const {node} = createFormComponent({schema, fields});
+      expect(node.querySelector("#title-test")).to.not.be.null;
+    });
+
+    it("should pass empty schema title to TitleField", () => {
+      const schema = {
+        "type": "array",
+        "title": "",
+        "items": {
+        }
+      };
+      const {node} = createFormComponent({schema, fields});
+      expect(node.querySelector("#title-")).to.be.null;
     });
   });
 });

@@ -1,8 +1,8 @@
 import React from "react";
-import { expect } from "chai";
-import { Simulate } from "react-addons-test-utils";
+import {expect} from "chai";
+import {Simulate} from "react-addons-test-utils";
 
-import { createFormComponent, createSandbox } from "./test_utils";
+import {createFormComponent, createSandbox} from "./test_utils";
 
 
 describe("ObjectField", () => {
@@ -235,6 +235,51 @@ describe("ObjectField", () => {
       const ids = [].map.call(node.querySelectorAll("input[type=text]"),
         (node) => node.id);
       expect(ids).eql(["root_bar", "root_foo"]);
+    });
+  });
+
+  describe("Title", () => {
+    const TitleField = props => <div id={`title-${props.title}`}/>;
+
+    const fields = {TitleField};
+
+    it("should pass field name to TitleField if there is no title", () => {
+      const schema = {
+        "type": "object",
+        "properties": {
+          "object": {
+            "type": "object",
+            "properties": {
+            }
+          }
+        }
+      };
+
+      const {node} = createFormComponent({schema, fields});
+      expect(node.querySelector("#title-object")).to.not.be.null;
+    });
+
+    it("should pass schema title to TitleField", () => {
+      const schema = {
+        "type": "object",
+        "properties": {
+        },
+        "title": "test"
+      };
+
+      const {node} = createFormComponent({schema, fields});
+      expect(node.querySelector("#title-test")).to.not.be.null;
+    });
+
+    it("should pass empty schema title to TitleField", () => {
+      const schema = {
+        "type": "object",
+        "properties": {
+        },
+        "title": ""
+      };
+      const {node} = createFormComponent({schema, fields});
+      expect(node.querySelector("#title-")).to.be.null;
     });
   });
 });

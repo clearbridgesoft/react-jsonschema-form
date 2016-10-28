@@ -1,4 +1,4 @@
-import React, { PropTypes } from "react";
+import React, {PropTypes} from "react";
 
 import {
   defaultFieldValue,
@@ -21,35 +21,38 @@ function StringField(props) {
     required,
     disabled,
     readonly,
+    autofocus,
     onChange
   } = props;
   const {title} = schema;
-  const {widgets} = registry;
+  const {widgets, formContext} = registry;
   const widget = uiSchema["ui:widget"] || schema.format;
   const placeholder = uiSchema["ui:placeholder"] || "";
   const commonProps = {
     schema,
     id: idSchema && idSchema.$id,
-    label: title || name,
+    label: (title === undefined) ? name : title,
     value: defaultFieldValue(formData, schema),
     onChange,
     required,
     disabled,
     readonly,
+    formContext,
+    autofocus,
   };
   if (Array.isArray(schema.enum)) {
     const enumOptions = optionsList(schema);
     if (widget) {
       const Widget = getAlternativeWidget(schema, widget, widgets, {enumOptions});
-      return <Widget {...commonProps} />;
+      return <Widget {...commonProps}/>;
     }
-    return <SelectWidget options={{enumOptions}} {...commonProps} />;
+    return <SelectWidget options={{enumOptions}} {...commonProps}/>;
   }
   if (widget) {
     const Widget = getAlternativeWidget(schema, widget, widgets);
-    return <Widget {...commonProps} placeholder={placeholder} />;
+    return <Widget {...commonProps} placeholder={placeholder}/>;
   }
-  return <TextWidget {...commonProps} placeholder={placeholder} />;
+  return <TextWidget {...commonProps} placeholder={placeholder}/>;
 }
 
 if (process.env.NODE_ENV !== "production") {
@@ -69,10 +72,13 @@ if (process.env.NODE_ENV !== "production") {
       ])).isRequired,
       fields: PropTypes.objectOf(PropTypes.func).isRequired,
       definitions: PropTypes.object.isRequired,
+      formContext: PropTypes.object.isRequired,
     }),
+    formContext: PropTypes.object.isRequired,
     required: PropTypes.bool,
     disabled: PropTypes.bool,
     readonly: PropTypes.bool,
+    autofocus: PropTypes.bool,
   };
 }
 
@@ -81,6 +87,7 @@ StringField.defaultProps = {
   registry: getDefaultRegistry(),
   disabled: false,
   readonly: false,
+  autofocus: false,
 };
 
 export default StringField;

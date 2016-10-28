@@ -1,6 +1,6 @@
-import React, { Component, PropTypes } from "react";
+import React, {Component, PropTypes} from "react";
 
-import { deepEquals } from "../../utils";
+import {deepEquals} from "../../utils";
 
 
 import {
@@ -93,10 +93,10 @@ class ObjectField extends Component {
       disabled,
       readonly
     } = this.props;
-    const {definitions, fields} = this.props.registry;
+    const {definitions, fields, formContext} = this.props.registry;
     const {SchemaField, TitleField, DescriptionField} = fields;
     const schema = retrieveSchema(this.props.schema, definitions);
-    const title = schema.title || name;
+    const title = (schema.title === undefined) ? name : schema.title;
     let orderedProperties;
     try {
       const properties = Object.keys(schema.properties);
@@ -117,12 +117,13 @@ class ObjectField extends Component {
         {title ? <TitleField
                    id={`${idSchema.$id}__title`}
                    title={title}
-                   required={required} /> : null}
+                   required={required}
+                   formContext={formContext}/> : null}
         {schema.description ?
           <DescriptionField
             id={`${idSchema.$id}__description`}
             description={schema.description}
-          /> : null}
+            formContext={formContext}/> : null}
         {
         orderedProperties.map((name, index) => {
           return (
@@ -137,7 +138,7 @@ class ObjectField extends Component {
               onChange={this.onPropertyChange(name)}
               registry={this.props.registry}
               disabled={disabled}
-              readonly={readonly} />
+              readonly={readonly}/>
           );
         })
       }</fieldset>
@@ -163,6 +164,7 @@ if (process.env.NODE_ENV !== "production") {
       ])).isRequired,
       fields: PropTypes.objectOf(PropTypes.func).isRequired,
       definitions: PropTypes.object.isRequired,
+      formContext: PropTypes.object.isRequired,
     })
   };
 }

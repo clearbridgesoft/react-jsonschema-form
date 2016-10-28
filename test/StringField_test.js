@@ -1,8 +1,9 @@
-import { expect } from "chai";
-import { Simulate } from "react-addons-test-utils";
+import React from "react";
+import {expect} from "chai";
+import {Simulate} from "react-addons-test-utils";
 
-import { parseDateString, toDateString } from "../src/utils";
-import { createFormComponent, createSandbox } from "./test_utils";
+import {parseDateString, toDateString} from "../src/utils";
+import {createFormComponent, createSandbox} from "./test_utils";
 
 
 describe("StringField", () => {
@@ -971,6 +972,57 @@ describe("StringField", () => {
 
       expect(node.querySelector("[type=file]").id)
         .eql("root");
+    });
+  });
+
+  describe("Label", () => {
+    const Widget = props => <div id={`label-${props.label}`}/>;
+
+    const widgets = {Widget};
+
+
+    it("should pass field name to widget if there is no title", () => {
+      const schema = {
+        "type": "object",
+        "properties": {
+          "string": {
+            "type": "string"
+          }
+        }
+      };
+      const uiSchema = {
+        "string": {
+          "ui:widget": "Widget"
+        }
+      };
+
+      const {node} = createFormComponent({schema, widgets, uiSchema});
+      expect(node.querySelector("#label-string")).to.not.be.null;
+    });
+
+    it("should pass schema title to widget", () => {
+      const schema = {
+        "type": "string",
+        "title": "test"
+      };
+      const uiSchema = {
+        "ui:widget": "Widget"
+      };
+
+      const {node} = createFormComponent({schema, widgets, uiSchema});
+      expect(node.querySelector("#label-test")).to.not.be.null;
+    });
+
+    it("should pass empty schema title to widget", () => {
+      const schema = {
+        "type": "string",
+        "title": ""
+      };
+      const uiSchema = {
+        "ui:widget": "Widget"
+      };
+      const {node} = createFormComponent({schema, widgets, uiSchema});
+      expect(node.querySelector("#label-")).to.not.be.null;
     });
   });
 });

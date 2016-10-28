@@ -1,4 +1,4 @@
-import React, { Component, PropTypes } from "react";
+import React, {Component, PropTypes} from "react";
 
 import SchemaField from "./fields/SchemaField";
 import TitleField from "./fields/TitleField";
@@ -72,7 +72,7 @@ export default class Form extends Component {
     const {showErrorList} = this.props;
 
     if (status !== "editing" && errors.length && showErrorList != false) {
-      return <ErrorList errors={errors} />;
+      return <ErrorList errors={errors}/>;
     }
     return null;
   }
@@ -132,6 +132,7 @@ export default class Form extends Component {
       FieldTemplate: this.props.FieldTemplate,
       widgets: this.props.widgets || {},
       definitions: this.props.schema.definitions || {},
+      formContext: this.props.formContext || {},
     };
   }
 
@@ -174,7 +175,7 @@ export default class Form extends Component {
           formData={formData}
           onChange={this.onChange}
           registry={registry}
-          safeRenderCompletion={safeRenderCompletion} />
+          safeRenderCompletion={safeRenderCompletion}/>
         { children ? children :
           <p>
             <button type="submit" className="btn btn-info">Submit</button>
@@ -211,7 +212,6 @@ if (process.env.NODE_ENV !== "production") {
     noValidate: PropTypes.bool,
     liveValidate: PropTypes.bool,
     safeRenderCompletion: PropTypes.bool,
+    formContext: PropTypes.object,
   };
 }
-
-export default Form;
