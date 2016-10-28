@@ -20,6 +20,7 @@ import ColorWidget from "./components/widgets/ColorWidget";
 import FileWidget from "./components/widgets/FileWidget";
 import CheckboxesWidget from "./components/widgets/CheckboxesWidget";
 
+import error from "./error.js";
 
 
 const altWidgetMap = {
@@ -124,7 +125,8 @@ export function getAlternativeWidget(
   }
 
   if (typeof widget !== "string") {
-    throw new Error(`Unsupported widget definition: ${typeof widget}`);
+    // throw new Error(`Unsupported widget definition: ${typeof widget}`);
+    return error(`Unsupported widget definition: ${typeof widget}`);
   }
 
   if (registeredWidgets.hasOwnProperty(widget)) {
@@ -133,7 +135,8 @@ export function getAlternativeWidget(
   }
 
   if (!altWidgetMap.hasOwnProperty(type)) {
-    throw new Error(`No alternative widget for type ${type}`);
+    // throw new Error(`No alternative widget for type ${type}`);
+    return error(`No alternative widget for type ${type}`);
   }
 
   if (altWidgetMap[type].hasOwnProperty(widget)) {
@@ -147,7 +150,8 @@ export function getAlternativeWidget(
   }
 
   const info = type === "string" && format ? `/${format}` : "";
-  throw new Error(`No alternative widget "${widget}" for type ${type}${info}`);
+  //throw new Error
+  return error(`No alternative widget "${widget}" for type ${type}${info}`);
 }
 
 function computeDefaults(schema, parentDefaults, definitions={}) {
