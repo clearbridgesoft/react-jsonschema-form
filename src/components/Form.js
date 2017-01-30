@@ -17,6 +17,7 @@ export default class Form extends Component {
     noValidate: false,
     liveValidate: false,
     safeRenderCompletion: false,
+    noHtml5Validate: false
   }
 
   constructor(props) {
@@ -60,8 +61,8 @@ export default class Form extends Component {
   }
 
   validate(formData, schema) {
-    const {validate} = this.props;
-    return validateFormData(formData, schema || this.props.schema, validate);
+    const {validate, transformErrors} = this.props;
+    return validateFormData(formData, schema || this.props.schema, validate, transformErrors);
   }
 
   renderErrors() {
@@ -87,6 +88,12 @@ export default class Form extends Component {
       }
     });
   };
+
+  onBlur = (...args) => {
+    if (this.props.onBlur) {
+      this.props.onBlur(...args);
+    }
+  }
 
   onSubmit = (event) => {
     event.preventDefault();
@@ -138,7 +145,8 @@ export default class Form extends Component {
       action,
       autocomplete,
       enctype,
-      acceptcharset
+      acceptcharset,
+      noHtml5Validate
     } = this.props;
 
     const {schema, uiSchema, formData, errorSchema, idSchema} = this.state;
@@ -155,6 +163,7 @@ export default class Form extends Component {
         autoComplete={autocomplete}
         encType={enctype}
         acceptCharset={acceptcharset}
+        noValidate={noHtml5Validate}
         onSubmit={this.onSubmit}>
         {this.renderErrors()}
         <_SchemaField
@@ -164,6 +173,7 @@ export default class Form extends Component {
           idSchema={idSchema}
           formData={formData}
           onChange={this.onChange}
+          onBlur={this.onBlur}
           registry={registry}
           safeRenderCompletion={safeRenderCompletion}/>
         { children ? children :
@@ -201,7 +211,10 @@ if (process.env.NODE_ENV !== "production") {
     enctype: PropTypes.string,
     acceptcharset: PropTypes.string,
     noValidate: PropTypes.bool,
+    noHtml5Validate: PropTypes.bool,
     liveValidate: PropTypes.bool,
+    validate: PropTypes.func,
+    transformErrors: PropTypes.func,
     safeRenderCompletion: PropTypes.bool,
     formContext: PropTypes.object,
   };

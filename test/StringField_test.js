@@ -77,6 +77,19 @@ describe("StringField", () => {
       expect(comp.state.formData).eql("yo");
     });
 
+    it("should handle a blur event", () => {
+      const onBlur = sandbox.spy();
+      const {node} = createFormComponent({schema: {
+        type: "string",
+      }, onBlur});
+      const input = node.querySelector("input");
+      Simulate.blur(input, {
+        target: {value: "yo"}
+      });
+
+      expect(onBlur.calledWith(input.id, "yo")).to.be.true;
+    });
+    
     it("should handle an empty string change event", () => {
       const {comp, node} = createFormComponent({
         schema: {type: "string"},
@@ -145,6 +158,31 @@ describe("StringField", () => {
         .eql("foo");
     });
 
+    it("should render empty option", () => {
+      const {node} = createFormComponent({schema: {
+        type: "string",
+        enum: ["foo", "bar"],
+      }});
+
+      expect(node.querySelectorAll(".field option")[0].value)
+        .eql("");
+    });
+
+    it("should render empty option with placeholder text", () => {
+      const {node} = createFormComponent({schema: {
+        type: "string",
+        enum: ["foo", "bar"],
+      }, uiSchema: {
+        "ui:options": {
+          placeholder: "Test"
+        }
+      }});
+
+      console.log(node.querySelectorAll(".field option")[0].innerHTML);
+      expect(node.querySelectorAll(".field option")[0].textContent)
+        .eql("Test");
+    });
+
     it("should assign a default value", () => {
       const {comp} = createFormComponent({schema: {
         type: "string",
@@ -168,6 +206,19 @@ describe("StringField", () => {
       expect(comp.state.formData).eql("foo");
     });
 
+    it("should reflect undefined into form state if empty option selected", () => {
+      const {comp, node} = createFormComponent({schema: {
+        type: "string",
+        enum: ["foo", "bar"],
+      }});
+
+      Simulate.change(node.querySelector("select"), {
+        target: {value: ""}
+      });
+
+      expect(comp.state.formData).to.be.undefined;
+    });
+
     it("should reflect the change into the dom", () => {
       const {node} = createFormComponent({schema: {
         type: "string",
@@ -179,6 +230,19 @@ describe("StringField", () => {
       });
 
       expect(node.querySelector("select").value).eql("foo");
+    });
+
+    it("should reflect undefined value into the dom as empty option", () => {
+      const {node} = createFormComponent({schema: {
+        type: "string",
+        enum: ["foo", "bar"],
+      }});
+
+      Simulate.change(node.querySelector("select"), {
+        target: {value: ""}
+      });
+
+      expect(node.querySelector("select").value).eql("");
     });
 
     it("should fill field with data", () => {
@@ -537,7 +601,7 @@ describe("StringField", () => {
       const monthOptions = node.querySelectorAll("select#root_month option");
       const monthOptionsValues = [].map.call(monthOptions, o => o.value);
       expect(monthOptionsValues).eql([
-        "-1", "1", "2", "3", "4", "5", "6",
+        "", "1", "2", "3", "4", "5", "6",
         "7", "8", "9", "10", "11", "12"]);
     });
 
@@ -721,7 +785,7 @@ describe("StringField", () => {
       const monthOptions = node.querySelectorAll("select#root_month option");
       const monthOptionsValues = [].map.call(monthOptions, o => o.value);
       expect(monthOptionsValues).eql([
-        "-1", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]);
+        "", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]);
     });
 
     it("should render the widgets with the expected options' labels", () => {
