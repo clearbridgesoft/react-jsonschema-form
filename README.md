@@ -50,7 +50,7 @@ A [live playground](https://mozilla-services.github.io/react-jsonschema-form/) i
      - [Form attributes](#form-attributes)
   - [Advanced customization](#advanced-customization)
      - [Field template](#field-template)
-     - [Array field template](#array-field-template)
+     - [Array Field Template](#array-field-template)
      - [Custom widgets and fields](#custom-widgets-and-fields)
      - [Custom widget components](#custom-widget-components)
         - [Custom component registration](#custom-component-registration)
@@ -66,7 +66,7 @@ A [live playground](https://mozilla-services.github.io/react-jsonschema-form/) i
      - [Custom descriptions](#custom-descriptions)
   - [Form data validation](#form-data-validation)
      - [Live validation](#live-validation)
-     - [HTML5 validation](#html5-validation)
+     - [HTML5 Validation](#html5-validation)
      - [Custom validation](#custom-validation)
      - [Custom error messages](#custom-error-messages)
      - [Error List Display](#error-list-display)
@@ -244,12 +244,12 @@ const uiSchema = {
     bar: {
       "ui:widget": "textarea"
     },
-    baz: {
-      // note the "items" for an array
-      items: {
-        description: {
-          "ui:widget": "textarea"
-        }
+  },
+  baz: {
+    // note the "items" for an array
+    items: {
+      description: {
+        "ui:widget": "textarea"
       }
     }
   }
@@ -776,6 +776,7 @@ The following props are passed to each `ArrayFieldTemplate`:
 - `required`: A boolean value stating if the array is required.
 - `schema`: The schema object for this array.
 - `title`: A string value containing the title for the array.
+- `formContext`: The `formContext` object that you passed to Form.
 
 The following props are part of each element in `items`:
 
@@ -1009,14 +1010,14 @@ You can provide a `formContext` object to the Form, which is passed down to all 
 
 ### Custom array field buttons
 
-The `ArrayField` component provides a UI to add, remove and reorder array items, and these buttons use [Bootstrap glyphicons](http://getbootstrap.com/components/#glyphicons). If you don't use Bootstrap yet still want to provide your own icons or texts for these buttons, you can easily do so using CSS:
+The `ArrayField` component provides a UI to add, remove and reorder array items, and these buttons use [Bootstrap glyphicons](http://getbootstrap.com/components/#glyphicons). If you don't use glyphicons but still want to provide your own icons or texts for these buttons, you can easily do so using CSS:
 
 ```css
-.btn-plus > i {
-  display: none;
-}
-.btn-plus::after {
-  content: "Add";
+i.glyphicon { display: none; }
+.btn-add::after { content: 'Add'; }
+.array-item-move-up::after { content: 'Move Up'; }
+.array-item-move-down::after { content: 'Move Down'; }
+.array-item-remove::after { content: 'Remove'; }
 }
 ```
 
