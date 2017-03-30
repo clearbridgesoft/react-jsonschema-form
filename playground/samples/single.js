@@ -4,5 +4,5 @@ module.exports = {
     type: "string",
   },
   formData: "initial value",
-  uiSchema: {}
+  uiSchema: {},
 };

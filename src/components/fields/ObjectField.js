@@ -1,10 +1,9 @@
-import React, {Component, PropTypes} from "react";
+import React, { Component, PropTypes } from "react";
 
 import {
   orderProperties,
   retrieveSchema,
-  shouldRender,
-  getDefaultRegistry
+  getDefaultRegistry,
 } from "../../utils";
 
 class ObjectField extends Component {
@@ -17,11 +16,7 @@ class ObjectField extends Component {
     required: false,
     disabled: false,
     readonly: false,
-  }
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return shouldRender(this, nextProps, nextState);
-  }
+  };
 
   isRequired(name) {
     const schema = this.props.schema;
@@ -29,9 +24,9 @@ class ObjectField extends Component {
       schema.required.indexOf(name) !== -1;
   }
 
-  onPropertyChange = (name) => {
+  onPropertyChange = name => {
     return (value, options) => {
-      const newFormData = {...this.props.formData, [name]: value};
+      const newFormData = { ...this.props.formData, [name]: value };
       this.props.onChange(newFormData, options);
     };
   };
@@ -46,12 +41,12 @@ class ObjectField extends Component {
       required,
       disabled,
       readonly,
-      onBlur
+      onBlur,
     } = this.props;
-    const {definitions, fields, formContext} = this.props.registry;
-    const {SchemaField, TitleField, DescriptionField} = fields;
+    const { definitions, fields, formContext } = this.props.registry;
+    const { SchemaField, TitleField, DescriptionField } = fields;
     const schema = retrieveSchema(this.props.schema, definitions);
-    const title = (schema.title === undefined) ? name : schema.title;
+    const title = schema.title === undefined ? name : schema.title;
     let orderedProperties;
     try {
       const properties = Object.keys(schema.properties);
@@ -59,7 +54,7 @@ class ObjectField extends Component {
     } catch (err) {
       return (
         <div>
-          <p className="config-error" style={{color: "red"}}>
+          <p className="config-error" style={{ color: "red" }}>
             Invalid {name || "root"} object field configuration:
             <em>{err.message}</em>.
           </p>
@@ -69,20 +64,23 @@ class ObjectField extends Component {
     }
     return (
       <fieldset>
-        {title ? <TitleField
-                   id={`${idSchema.$id}__title`}
-                   title={title}
-                   required={required}
-                   formContext={formContext}/> : null}
-        {schema.description ?
+        {title &&
+          <TitleField
+            id={`${idSchema.$id}__title`}
+            title={title}
+            required={required}
+            formContext={formContext}
+          />}
+        {schema.description &&
           <DescriptionField
             id={`${idSchema.$id}__description`}
             description={schema.description}
-            formContext={formContext}/> : null}
-        {
-        orderedProperties.map((name, index) => {
+            formContext={formContext}
+          />}
+        {orderedProperties.map((name, index) => {
           return (
-            <SchemaField key={index}
+            <SchemaField
+              key={index}
               name={name}
               required={this.isRequired(name)}
               schema={schema.properties[name]}
@@ -94,10 +92,11 @@ class ObjectField extends Component {
               onBlur={onBlur}
               registry={this.props.registry}
               disabled={disabled}
-              readonly={readonly}/>
+              readonly={readonly}
+            />
           );
-        })
-      }</fieldset>
+        })}
+      </fieldset>
     );
   }
 }
@@ -114,14 +113,13 @@ if (process.env.NODE_ENV !== "production") {
     disabled: PropTypes.bool,
     readonly: PropTypes.bool,
     registry: PropTypes.shape({
-      widgets: PropTypes.objectOf(PropTypes.oneOfType([
-        PropTypes.func,
-        PropTypes.object,
-      ])).isRequired,
+      widgets: PropTypes.objectOf(
+        PropTypes.oneOfType([PropTypes.func, PropTypes.object])
+      ).isRequired,
       fields: PropTypes.objectOf(PropTypes.func).isRequired,
       definitions: PropTypes.object.isRequired,
       formContext: PropTypes.object.isRequired,
-    })
+    }),
   };
 }
 
